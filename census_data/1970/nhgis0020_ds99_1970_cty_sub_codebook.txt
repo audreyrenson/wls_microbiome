@@ -1,0 +1,141 @@
+--------------------------------------------------------------------------------
+Codebook for NHGIS data file 'nhgis0020_ds99_1970_cty_sub'
+--------------------------------------------------------------------------------
+ 
+Contents
+    - Data Summary
+    - Data Dictionary
+    - Citation and Use
+ 
+Additional documentation on NHGIS data sources is available at: 
+    https://www.nhgis.org/documentation/tabular-data 
+ 
+--------------------------------------------------------------------------------
+Data Summary
+--------------------------------------------------------------------------------
+ 
+Year:             1970
+Geographic level: County Subdivision (by State--County)
+Dataset:          1970 Census: Count 4Pb - Sample-Based Population Data with Race/Ethnicity Breakdown
+   NHGIS code:    1970_Cnt4Pb
+   NHGIS ID:      ds99
+Breakdown(s):     Geographic Subarea:
+                     Total area (000)
+                  Race/Ethnicity:
+                     All races (000)
+ 
+Tables:
+ 
+1. Family Income
+   Universe:    Families
+   Source code: NT75
+   NHGIS code:  C3T
+ 
+2. Ratio of Family Income to Poverty Level
+   Universe:    Families
+   Source code: NT82
+   NHGIS code:  C35
+ 
+--------------------------------------------------------------------------------
+Data Dictionary
+--------------------------------------------------------------------------------
+ 
+Context Fields 
+        GISJOIN:     GIS Join Match Code
+        YEAR:        Data File Year
+        STATE:       State Name
+        STATEA:      State Code
+        COUNTY:      County Name
+        COUNTYA:     County Code
+        CTY_SUB:     County Subdivision Name
+        CTY_SUBA:    County Subdivision Code
+        PLACEA:      Place Code
+        TRACTA:      Census Tract Code
+        SCSAA:       Standard Consolidated Statistical Area Code
+        SMSAA:       Standard Metropolitan Statistical Area Code
+        URB_AREAA:   Urban Area Code
+        BLOCKA:      Block Code
+        CDA:         Congressional District Code
+        AREANAME:    Area Name
+ 
+Breakdown:
+    Geographic Subarea: Total area (000)
+    Race/Ethnicity: All races (000)
+ 
+    Table 1:     Family Income
+    Universe:    Families
+    Source code: NT75
+    NHGIS code:  C3T
+        C3T001:      Under $1000 (includes $1-$999, none, and loss)
+        C3T002:      $1000-$1999
+        C3T003:      $2000-$2999
+        C3T004:      $3000-$3999
+        C3T005:      $4000-$4999
+        C3T006:      $5000-$5999
+        C3T007:      $6000-$6999
+        C3T008:      $7000-$7999
+        C3T009:      $8000-$8999
+        C3T010:      $9000-$9999
+        C3T011:      $10000-$11999
+        C3T012:      $12000-$14999
+        C3T013:      $15000-$24999
+        C3T014:      $25000-$49999
+        C3T015:      $50000 and over
+ 
+    Table 2:     Ratio of Family Income to Poverty Level
+    Universe:    Families
+    Source code: NT82
+    NHGIS code:  C35
+        C35001:      Under .50
+        C35002:      .50-.74
+        C35003:      .75-.99
+        C35004:      1.00-1.24
+        C35005:      1.25-1.49
+        C35006:      1.50-1.99
+        C35007:      2.00-2.99
+        C35008:      3.00 or more
+ 
+--------------------------------------------------------------------------------
+Citation and Use of NHGIS Data
+--------------------------------------------------------------------------------
+ 
+All persons are granted a limited license to use this documentation and the
+accompanying data, subject to the following conditions:
+
+* Publications and research reports employing NHGIS data (either tabular or GIS)
+  must cite it appropriately. The citation should include the following:
+
+    Steven Manson, Jonathan Schroeder, David Van Riper, and Steven Ruggles. 
+    IPUMS National Historical Geographic Information System: Version 12.0 [Database]. 
+    Minneapolis: University of Minnesota. 2017. 
+    http://doi.org/10.18128/D050.V12.0
+
+* Publications and research reports employing school attendance areas data
+  (either tabular or GIS) must cite it appropriately. The citation should
+  include the following:
+
+    The College of William and Mary and the Minnesota Population Center.
+    School Attendance Boundary Information System (SABINS): Version 1.0.
+    Minneapolis, MN: University of Minnesota 2011.
+
+* For policy briefs or articles in the popular press, we recommend that you cite the use of NHGIS data as follows:
+
+    IPUMS NHGIS, University of Minnesota, www.nhgis.org.
+
+* If possible, citations involving school attendance areas should also include
+  the URL for the SABINS site:
+
+    http://www.sabinsdata.org/.
+
+In addition, we request that users send us a copy of any publications, research
+reports, or educational material making use of the data or documentation.
+Printed matter should be sent to:
+
+    NHGIS
+    Minnesota Population Center
+    University of Minnesota
+    50 Willey Hall
+    225 19th Ave S
+    Minneapolis, MN 55455
+
+Send electronic material to: nhgis@umn.edu

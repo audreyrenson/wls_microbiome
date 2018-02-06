@@ -1,0 +1,264 @@
+---
+title: "Wisconsin"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(phyloseq)
+library(foreign)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(readstata13)
+library(tableone)
+library(reshape2)
+#if(!require(clinRes)) devtools::install_github("audreyrenson/clinRes"); library(clinres)
+library(htmlTable)
+source("../nychanes2/src/summaryPlots.R")
+```
+
+Read geocode data
+
+```{r}
+geo <- read.dta13 ("pheno_data/Gecodes_Individual_Level_idpriv_rtype.dta")
+sapply(geo, function(i) table(is.na(i), geo$rtype))
+geo40 <- read.dta13("pheno_data/Geocodes_1940_Individual_Level_idpriv_rtype.dta")
+geor6 <- read.dta13("pheno_data/R6_Geocodes_MATCHED.dta")
+
+geor6_unmatched <- read.csv("census_data/2009-2013/nhgis0022_ds201_20135_2013_cty_sub.csv")
+geor6_unmatched$mcd <- paste0(sprintf("%02d",geor6_unmatched$STATEA),
+                              sprintf("%03d",geor6_unmatched$COUNTYA),
+                              sprintf("%05d",geor6_unmatched$COUSUBA))
+geor6 %<>% left_join(geor6_unmatched[,c("mcd","UHDM001")], by=c("r6dec00_mcd"="mcd"))
+
+geor6 %>% 
+  mutate(ACS =r6acs13_median_inc, Decennial2000 = r6dec00_median_inc,
+    ACS_2.5 = r6acs13_median_inc-1.96*UHDM001, 
+        ACS_97.5=r6acs13_median_inc+1.96*UHDM001) %>%
+  select(ACS, ACS_2.5, ACS_97.5, Decennial2000) %>%
+  melt %>%
+  ggplot(aes(x=value, color=variable, fill=variable, alpha=variable, linetype=variable)) + 
+  geom_density() +
+  theme_bw() +
+  scale_color_manual(values=c("steelblue","skyblue2","skyblue2","coral4")) +
+  scale_fill_manual(values=c("steelblue","skyblue2","skyblue2","coral4")) +
+  scale_alpha_manual(values=c(0.2,0.05,0.05,0.2)) +
+  scale_linetype_manual(values=c(1,2,3,1)) + labs(x="Median Household Income (cty sub)")
+
+```
+
+Read survey data
+```{r}
+sdat <- read.dta13("pheno_data/CUNY_October_2017_Survey.dta")
+save(sdat, file = "sdat.Rda")
+```
+
+
+Assembling microbiome data into a phyloseq object
+
+```{r assemble_phyloseq}
+otu_t <- read.table("otu_data/WLS.OTU.txt", header = TRUE, stringsAsFactors = FALSE)
+otu <- apply(t(otu_t[,-1]),2,as.numeric); colnames(otu) <- otu_t$Group; rownames(otu) <- colnames(otu_t)[-1]
+OTU <- otu_table(otu, taxa_are_rows = TRUE)
+
+tax <- as.matrix( read.table("otu_data/WLS.taxonomy.txt", header=TRUE, stringsAsFactors = FALSE) )
+rownames(tax) <- tax[,1]
+tax <- tax[taxa_names(OTU), -1]
+TAX <- tax_table(tax)
+
+samp <- read.table("otu_data/WLS.meta.txt", header=TRUE)
+rownames(samp) <- samp$group
+SAMP <- sample_data(samp)
+
+wisc <- phyloseq(OTU, TAX, SAMP)
+```
+
+Data management
+
+Grads and sibs
+--------------
+1957 (only grads)
+edmo57q: Mother's years of schooling
+edfa57q: Father's years of schooling.
+sesp57: How does your family income or wealth compare with families in your community?
+
+
+
+1975
+ srbmi    Standardized relative body mass index. (coded by 6 coders based on yearbook photos)
+
+
+
+2011
+brdxdy: Graduate's year of birth.
+SEXRSP:              Graduate's sex
+SSBSEX:              Selected Sibiling's sex
+INAFROA:             Graduate an African-American?
+
+hf002js: Participant's current employment status
+hf21jjsd: Total years Participant worked between their last interview and 2011 interview
+hf15jjsc: Did Participant work at any time during the period between their last interview and 2011 interview
+hf24jjsc: Was a pension plan ever available to Participant through an employer between their last interview and 2011 interview
+hf26jjsc: Was health insurance ever available to Participant through an employer between their last interview and 2011 interview?
+hp227re: How difficult is it for you (and your family) to meet the monthly payments on your bills? Is it extremely, very, somewhat, slightly, or not at all difficult?
+hp250rec: Total Personal Income - TPI
+hp260hec: Total Household Income - THI
+hb001re: Summary of ever attended college
+hb005rec: Level of highest degree since high school.
+hb103red: Summary of equivalent years of regular education based on highest degree.
+hr100rpc: Respondent and spouse net worth, complete reports only.
+jc001rer: Are you currently married or living with someone in a marriage-like relationship?
+jx011rec: Responent's Body Mass Index based on their reported weight and height.
+
+Sibs and spouses
+----------------
+CB001RE-CB009RED:   Summary of Educational History Using Data Collected in 
+                        1977,1993 and 2004.
+
+
+```{r fig.width=6, fig.height=13}
+load("sdat.Rda")
+
+#### collecting important variables
+#easy way to search through the variable names
+fv <- function(pattern) grep(pattern, names(sdat), value=TRUE, ignore.case = TRUE)
+fv("hp250rec")
+
+# simple summary variables
+vars_keep <- c("idpriv","rtype","is_spouse","hasmibisib","hasspouse","personid","selsibidpriv","selsibtype","sibcount")
+# demographics, confounders
+vars_keep <- c(vars_keep, "z_jx011rec","z_sexrsp","ssbsex75","z_ha003re", "z_hc012sp", "sex","age2011") 
+#study variables
+vars_keep <- c(vars_keep, "z_hp260hec", "z_hb005rec","z_hr100rpc","z_hf24jjsc","z_hp227re",
+               "z_hp250rec","edmo57q","edfa57q","sesp57","srbmi")
+#geocode variables
+
+
+#coding sex and age based on spouse
+sdat$sex <- as.character(sdat$z_sexrsp )
+sdat$age2011 <- sdat$z_ha003re
+for(i in 1:nrow(sdat)) if(sdat$rtype[i] %in% c("p","e")) {
+  spouse_type <- switch(sdat$rtype[i], p="g", e="s")
+  spouse_index <- which(sdat$idpriv == sdat$idpriv[i] & sdat$rtype==spouse_type)
+  male_spouse <- sdat$sex[spouse_index] == "male"
+  age_spouse <- sdat$z_hc012sp[spouse_index]
+  if(length(male_spouse) > 0) {
+    sdat$sex[i] <- c("male","female")[male_spouse + 1]
+    sdat$age2011[i] <- sdat$z_hc012sp[spouse_index]
+  }
+}
+
+
+#generating the data set to keep
+sdat <- sdat[,vars_keep]
+sdat %<>% left_join(geo, by=c("idpriv","rtype"))
+rownames(sdat) <- paste0(sdat$idpriv, sdat$rtype)
+sdat <- sdat[sample_names(wisc),]
+
+#get the number missing for each variable for each participant type
+missing_table <- t(sapply(sdat, function(i) table(sdat$rtype, factor(is.na(i), levels=c(FALSE,TRUE) ))[,"TRUE"] ))
+#proportion missing for each variable for each participant type
+melt(sweep(missing_table, 2, table(sdat$rtype), "/")) %>%
+  mutate(Var2=factor(as.character(Var2), levels=c("g","s","e","p"),
+                     labels=c("grad","sib","sib spouse","grad spouse"))) %>%
+  ggplot(aes(x=Var2, y=Var1, fill=value)) + geom_tile()
+
+```
+
+```{r}
+
+
+
+#aligning survey data to phyloseq data
+samp_new <- sample_data(sdat)
+sample_names(samp_new) <- paste0(sdat$idpriv, sdat$rtype)
+samp_new <- samp_new[,c(-1,-2)]
+sample_data(wisc) <- sample_data(  cbind(sample_data(wisc), samp_new[sample_names(wisc),]) )
+
+
+
+
+
+
+
+samp$z_hp260hec <- sdat$z_hp260hec
+samp$pers_inc_tert <- samp$z_hp260hec %>% cut(breaks=quantile(., probs=c(0,.25,.5,.75,1),na.rm=TRUE),
+                                                    labels=c("<25K","25-37K","37-60K","60K+"))
+samp$log_inc <- log(samp$z_hp260hec)
+
+
+```
+
+
+Table One
+```{r}
+sdat$type = sapply(sdat$rtype, switch, e="Sib Spouse", g="Grad",p="Grad Spouse", s="Sib")
+sdat$z_hb005re %<>% droplevels
+
+htmlTable(table_one(vars=c("sex","age2011","z_hb005re","z_hp260hec","z_jx011rec"), 
+                    varlabels = c("Gender","Age in 2011","Highest level of education",
+                                  "Total Household Income","BMI"),
+                    data = sdat, strata="type"))
+table_one("z_hb005rec", data=sdat)
+
+lapply(c("sex","age2011","z_hb005rec","z_hp260hec"), function(i) table(is.na(sdat[[i]]), sdat$type))
+
+```
+
+Basic Filtering (more than 3 sample with any count)
+
+```{r}
+keep <- rowSums(otu_table(wisc) > 10) > 3
+
+wisc <- prune_taxa(keep, wisc)
+
+```
+
+
+Simple abundance, alpha, PCoA etc.
+
+```{r abundance}
+
+set.seed(48)
+phyla_colors1 <- sample( rainbow(n = 8,  start = 0.1, end = 1, s = .5, v=.7), size=8, replace=FALSE)
+phyla_colors1 <- rev( phyla_colors1[c(2,1,3:8)] )
+set.seed(48)
+phyla_colors2 <- sample( rainbow(n = 8,  start = 0.1, end = 1, s = .7, v=.9), size=8, replace=FALSE)
+phyla_colors2 <- rev( phyla_colors2[c(2,1,3:8)] )
+
+phyla_colors <- c(rbind(phyla_colors1[c(1,3,5,7)], phyla_colors2[c(2,4,6,8)]))
+
+plot_abundance(wisc, PALETTE = phyla_colors)
+```
+
+```{r alpha}
+sample_data(wisc)$education <- factor(sdat$bachelors, levels=c(FALSE,TRUE), labels=c("Some College or less","Bachelor's degree or greater"))
+sample_data(wisc)$sex <- factor(sdat$sex)
+sample_data(wisc)$hous_inc_tert <- sample_data(wisc)$z_hp260hec %>% cut(breaks=quantile(., probs=c(0, 1/3, 2/3, 1),na.rm=TRUE),
+                                                    labels=c("<27.6K","27.6-48K",">48K"))
+
+plot_alpha_by(wisc, vars=c("sex","education", "hous_inc_tert"))
+kruskal.test(chao ~ education, data=data.frame(sample_data(wisc)))
+kruskal.test(chao ~ hous_inc_tert, data=data.frame(sample_data(wisc)))
+kruskal.test(chao ~ sex, data=data.frame(sample_data(wisc)))
+```
+
+
+
+```{r}
+
+dist_bray <- phyloseq::distance(wisc, method="bray")
+ord_bray <- ordinate(wisc, method = "PCoA")
+plot_ordination(wisc, ord_bray)
+```
+
+```{r}
+plot_richness(wisc)
+
+```
+```{r}
+
+```
+

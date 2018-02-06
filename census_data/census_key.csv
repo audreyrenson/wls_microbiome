@@ -1,0 +1,63 @@
+Variable,Label,Year,Dataset
+CBC001,Total,1970,Decenial
+C06001,No school years completed (includes nursery and kindergarten),1970,Decenial
+C06002,Elementary,1970,Decenial
+C06003,Elementary,1970,Decenial
+C06004,Elementary,1970,Decenial
+C06005,Elementary,1970,Decenial
+C06006,High school,1970,Decenial
+C06007,High school,1970,Decenial
+C06008,College,1970,Decenial
+C06009,College,1970,Decenial
+C06010,College,1970,Decenial
+C3T001,"Under $1000 (includes $1-$999, none, and loss)",1970,Decenial
+C3T002,$1000-$1999,1970,Decenial
+C3T003,$2000-$2999,1970,Decenial
+C3T004,$3000-$3999,1970,Decenial
+C3T005,$4000-$4999,1970,Decenial
+C3T006,$5000-$5999,1970,Decenial
+C3T007,$6000-$6999,1970,Decenial
+C3T008,$7000-$7999,1970,Decenial
+C3T009,$8000-$8999,1970,Decenial
+C3T010,$9000-$9999,1970,Decenial
+C3T011,$10000-$11999,1970,Decenial
+C3T012,$12000-$14999,1970,Decenial
+C3T013,$15000-$24999,1970,Decenial
+C3T014,$25000-$49999,1970,Decenial
+C3T015,$50000 and over,1970,Decenial
+ET1001,Total,1990,Decenial
+E4U001,Median household income in 1989,1990,Decenial
+E33001,Less than 9th grade,1990,Decenial
+E33002,"9th to 12th grade, no diploma",1990,Decenial
+E33003,High school graduate (includes equivalency),1990,Decenial
+E33004,"Some college, no degree",1990,Decenial
+E33005,Associate degree,1990,Decenial
+E33006,Bachelors degree,1990,Decenial
+E33007,Graduate or professional degree,1990,Decenial
+UGSE001,Total,2010,ACS
+UGSE002,No schooling completed,2010,ACS
+UGSE003,Nursery school,2010,ACS
+UGSE004,Kindergarten,2010,ACS
+UGSE005,1st grade,2010,ACS
+UGSE006,2nd grade,2010,ACS
+UGSE007,3rd grade,2010,ACS
+UGSE008,4th grade,2010,ACS
+UGSE009,5th grade,2010,ACS
+UGSE010,6th grade,2010,ACS
+UGSE011,7th grade,2010,ACS
+UGSE012,8th grade,2010,ACS
+UGSE013,9th grade,2010,ACS
+UGSE014,10th grade,2010,ACS
+UGSE015,11th grade,2010,ACS
+UGSE016,"12th grade, no diploma",2010,ACS
+UGSE017,Regular high school diploma,2010,ACS
+UGSE018,GED or alternative credential,2010,ACS
+UGSE019,"Some college, less than 1 year",2010,ACS
+UGSE020,"Some college, 1 or more years, no degree",2010,ACS
+UGSE021,Associate's degree,2010,ACS
+UGSE022,Bachelor's degree,2010,ACS
+UGSE023,Master's degree,2010,ACS
+UGSE024,Professional school degree,2010,ACS
+UGSE025,Doctorate degree,2010,ACS
+UHDE001,Median household income in the past 12 months (in 2013 inflation-adjusted dollars),2010,ACS
+UEPM001,Total,2010,ACS

@@ -1,0 +1,176 @@
+--------------------------------------------------------------------------------
+Codebook for NHGIS data file 'nhgis0017_ds151_2000_cty_sub'
+--------------------------------------------------------------------------------
+ 
+Contents
+    - Data Summary
+    - Data Dictionary
+    - Citation and Use
+ 
+Additional documentation on NHGIS data sources is available at: 
+    https://www.nhgis.org/documentation/tabular-data 
+ 
+--------------------------------------------------------------------------------
+Data Summary
+--------------------------------------------------------------------------------
+ 
+Year:             2000
+Geographic level: County Subdivision (by State--County)
+Dataset:          2000 Census: SF 3a - Sample-Based Data [Areas Larger Than Block Groups]
+   NHGIS code:    2000_SF3a
+   NHGIS ID:      ds151
+Breakdown(s):     Geographic Subarea:
+                     Total area (00)
+ 
+Tables:
+ 
+1. Population 25 Years and Over by Sex by Educational Attainment
+   Universe:    Persons 25 Years and Over
+   Source code: NP037C
+   NHGIS code:  GKT
+ 
+2. Median Household Income in 1999
+   Universe:    Households
+   Source code: NP053A
+   NHGIS code:  GMY
+ 
+3. Poverty Status in 1999
+   Universe:    Persons for Whom Poverty Status Is Determined
+   Source code: NP087B
+   NHGIS code:  GN6
+ 
+--------------------------------------------------------------------------------
+Data Dictionary
+--------------------------------------------------------------------------------
+ 
+Context Fields 
+        GISJOIN:     GIS Join Match Code
+        YEAR:        Data File Year
+        REGIONA:     Region Code
+        DIVISIONA:   Division Code
+        STATE:       State Name
+        STATEA:      State Code
+        COUNTY:      County Name
+        COUNTYA:     County Code
+        CTY_SUB:     County Subdivision Name
+        CTY_SUBA:    County Subdivision Code
+        PLACEA:      Place Code
+        TRACTA:      Census Tract Code
+        TRBL_CTA:    Tribal Census Tract Code
+        TRBL_BGA:    Tribal Block Group Code
+        BLCK_GRPA:   Block Group Code
+        C_CITYA:     Consolidated City Code
+        TRUSTA:      American Indian Reservation [trust lands only] Code
+        RES_ONLYA:   American Indian Reservation [excluding trust lands] Code
+        AIANHHA:     American Indian Area/Alaska Native Area/Hawaiian Home Land Code
+        TRBL_SUBA:   Tribal Subdivision Code
+        ANRCA:       Alaska Native Regional Corporation Code
+        MSA_CMSAA:   Metropolitan Statistical Area/Consolidated Metropolitan Statistical Area Code
+        PMSAA:       Primary Metropolitan Statistical Area Code
+        NECMAA:      New England County Metropolitan Area Code
+        URB_AREAA:   Urban Area Code
+        URBRURALA:   Urban/Rural Code
+        CD106A:      Congressional District (106th) Code
+        CD108A:      Congressional District (108th) Code
+        CD109A:      Congressional District (109th) Code
+        ZIP3A:       3-Digit Zip Code Tabulation Area Code
+        ZCTAA:       5-Digit Zip Code Tabulation Area Code
+        NAME:        Area Name-Legal/Statistical Area Description (LSAD) Term-Part Indicator
+ 
+Breakdown:
+    Geographic Subarea: Total area (00)
+ 
+    Table 1:     Population 25 Years and Over by Sex by Educational Attainment
+    Universe:    Persons 25 Years and Over
+    Source code: NP037C
+    NHGIS code:  GKT
+        GKT001:      Male >> No schooling completed
+        GKT002:      Male >> Nursery to 4th grade
+        GKT003:      Male >> 5th and 6th grade
+        GKT004:      Male >> 7th and 8th grade
+        GKT005:      Male >> 9th grade
+        GKT006:      Male >> 10th grade
+        GKT007:      Male >> 11th grade
+        GKT008:      Male >> 12th grade, no diploma
+        GKT009:      Male >> High school graduate (includes equivalency)
+        GKT010:      Male >> Some college, less than 1 year
+        GKT011:      Male >> Some college, 1 or more years, no degree
+        GKT012:      Male >> Associate degree
+        GKT013:      Male >> Bachelor's degree
+        GKT014:      Male >> Master's degree
+        GKT015:      Male >> Professional school degree
+        GKT016:      Male >> Doctorate degree
+        GKT017:      Female >> No schooling completed
+        GKT018:      Female >> Nursery to 4th grade
+        GKT019:      Female >> 5th and 6th grade
+        GKT020:      Female >> 7th and 8th grade
+        GKT021:      Female >> 9th grade
+        GKT022:      Female >> 10th grade
+        GKT023:      Female >> 11th grade
+        GKT024:      Female >> 12th grade, no diploma
+        GKT025:      Female >> High school graduate (includes equivalency)
+        GKT026:      Female >> Some college, less than 1 year
+        GKT027:      Female >> Some college, 1 or more years, no degree
+        GKT028:      Female >> Associate degree
+        GKT029:      Female >> Bachelor's degree
+        GKT030:      Female >> Master's degree
+        GKT031:      Female >> Professional school degree
+        GKT032:      Female >> Doctorate degree
+ 
+    Table 2:     Median Household Income in 1999
+    Universe:    Households
+    Source code: NP053A
+    NHGIS code:  GMY
+        GMY001:      Median income in 1999
+ 
+    Table 3:     Poverty Status in 1999
+    Universe:    Persons for Whom Poverty Status Is Determined
+    Source code: NP087B
+    NHGIS code:  GN6
+        GN6001:      Income in 1999 below poverty level
+        GN6002:      Income in 1999 at or above poverty level
+ 
+--------------------------------------------------------------------------------
+Citation and Use of NHGIS Data
+--------------------------------------------------------------------------------
+ 
+All persons are granted a limited license to use this documentation and the
+accompanying data, subject to the following conditions:
+
+* Publications and research reports employing NHGIS data (either tabular or GIS)
+  must cite it appropriately. The citation should include the following:
+
+    Steven Manson, Jonathan Schroeder, David Van Riper, and Steven Ruggles. 
+    IPUMS National Historical Geographic Information System: Version 12.0 [Database]. 
+    Minneapolis: University of Minnesota. 2017. 
+    http://doi.org/10.18128/D050.V12.0
+
+* Publications and research reports employing school attendance areas data
+  (either tabular or GIS) must cite it appropriately. The citation should
+  include the following:
+
+    The College of William and Mary and the Minnesota Population Center.
+    School Attendance Boundary Information System (SABINS): Version 1.0.
+    Minneapolis, MN: University of Minnesota 2011.
+
+* For policy briefs or articles in the popular press, we recommend that you cite the use of NHGIS data as follows:
+
+    IPUMS NHGIS, University of Minnesota, www.nhgis.org.
+
+* If possible, citations involving school attendance areas should also include
+  the URL for the SABINS site:
+
+    http://www.sabinsdata.org/.
+
+In addition, we request that users send us a copy of any publications, research
+reports, or educational material making use of the data or documentation.
+Printed matter should be sent to:
+
+    NHGIS
+    Minnesota Population Center
+    University of Minnesota
+    50 Willey Hall
+    225 19th Ave S
+    Minneapolis, MN 55455
+
+Send electronic material to: nhgis@umn.edu

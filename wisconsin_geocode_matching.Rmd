@@ -1,0 +1,261 @@
+---
+title: "Wisconsin Microbiome"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#library(phyloseq)
+library(foreign)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(readstata13)
+```
+
+Assembling microbiome data into a phyloseq object
+
+```{r assemble_phyloseq}
+otu_t <- read.table("otu_data/WLS.OTU.txt", header = TRUE, stringsAsFactors = FALSE)
+otu <- apply(t(otu_t[,-1]),2,as.numeric); colnames(otu) <- otu_t$Group; rownames(otu) <- colnames(otu_t)[-1]
+OTU <- otu_table(otu, taxa_are_rows = TRUE)
+
+tax <- as.matrix( read.table("otu_data/WLS.taxonomy.txt", header=TRUE, stringsAsFactors = FALSE) )
+rownames(tax) <- tax[,1]
+tax <- tax[taxa_names(OTU), ]
+TAX <- tax_table(tax)
+
+samp <- read.table("otu_data/WLS.meta.txt", header=TRUE)
+rownames(samp) <- samp$group
+SAMP <- sample_data(samp)
+
+wisc <- phyloseq(OTU, TAX, SAMP)
+```
+
+```{r assemble_census}
+census1940 <- read.dta("pheno_data/Census_1940_Gecodes.dta")
+```
+
+Attaching 1970 decennial census data to R3 geocoded data
+
+```{r}
+#read R3 geocode data
+r3geo <- read.dta("pheno_data/R3_Geocodes.dta")
+#create mcd (county subdivision)
+r3geo$r3dec70_mcd <- paste0(substr(r3geo$z_geog75, 1, 5),
+                    sprintf("%03d",as.numeric(r3geo$z_mcd75)))
+
+
+#1970 data from NHGIS
+dec70_edu <- read.csv("census_data/1970/nhgis0020_ds98_1970_cty_sub.csv")
+dec70_inc <- read.csv("census_data/1970/nhgis0020_ds99_1970_cty_sub.csv")
+dec70_pop <- read.csv("census_data/1970/nhgis0020_ds94_1970_cty_sub.csv")
+
+#paste together state, county, and county subdivision
+dec70_edu$mcd <- paste0(sprintf("%02d",dec70_edu$STATEA),sprintf("%03d",dec70_edu$COUNTYA),
+                        sprintf("%03d",dec70_edu$CTY_SUBA))
+dec70_inc$mcd <- paste0(sprintf("%02d",dec70_inc$STATEA),sprintf("%03d",dec70_inc$COUNTYA),
+                        sprintf("%03d",dec70_inc$CTY_SUBA))
+dec70_pop$mcd <- paste0(sprintf("%02d",dec70_pop$STATEA),sprintf("%03d",dec70_pop$COUNTYA),
+                        sprintf("%03d",dec70_pop$CTY_SUBA))
+
+#Getting median income from categories
+    #function to get median income & poverty ratio by expanding out categorical columns to the actual observations, 
+    #and taking the median.
+    get_median_from_categories <- function(dat, labs) {
+      factor(labs[sapply(1:nrow(dat), function(i) floor(median(rep(1:ncol(dat), times=dat[i,]))))],
+        levels=labs)
+    }
+    
+    #income and labels from codebook
+    inc_labs70 <-  c("Under $1000 (includes $1-$999, none, and loss)", "$1000-$1999",
+            "$2000-$2999", "$3000-$3999", "$4000-$4999", "$5000-$5999", "$6000-$6999",
+            "$7000-$7999", "$8000-$8999", "$9000-$9999","$10000-$11999", "$12000-$14999",
+            "$15000-$24999","$25000-$49999", "$50000 and over")
+    
+    #remove NAs from income fields
+    dec70_inc <- dec70_inc[!apply(dec70_inc[,17:31], 1, function(i) any(is.na(i))),]
+    
+    #get median income
+    dec70_inc$median_inc <- get_median_from_categories(dec70_inc[,17:31], inc_labs)
+
+#poverty categories
+dec70_pov_cats <-  paste0("C3500", 1:8)    
+#education categories
+dec70_edu_cats <-  paste0("C060", sprintf("%02d", 1:10))    
+
+#join all census tables and add 'r3dec70' to beginning of names
+dec70 <- left_join(dec70_inc[,c("mcd", "median_inc",dec70_pov_cats)],
+                   dec70_edu[,c("mcd",  dec70_edu_cats)]) %>%
+  left_join(dec70_pop[,c("mcd","CBC001")])
+
+names(dec70) <- paste0("r3dec70_",names(dec70))
+
+#any MCDs missing from census?
+table(r3geo$r3dec70_mcd %in% dec70$r3dec70_mcd)
+
+#match to R3 data
+r3geo %<>% left_join(dec70)
+
+```
+Attach 1990 decennial census data to R4 geocoded data
+
+```{r}
+#read R4 geocode data
+r4geo <- read.dta("pheno_data/R4_Geocodes.dta")
+#make mcd
+r4geo$r4dec90_mcd <- paste0(r4geo$z_gdtfipsg, r4geo$z_gdtmcdg)
+
+#1990 data from NHIS
+dec90 <- read.csv("census_data/1990/nhgis0021_ds123_1990_cty_sub.csv")
+dec90_pop <- read.csv("census_data/1990/nhgis0021_ds120_1990_cty_sub.csv")
+
+
+
+get_mcd <- function(dat)  paste0(sprintf("%02d",dat$STATEA),
+                       sprintf("%03d",dat$COUNTYA),
+                       sprintf("%05d",dat$CTY_SUBA))
+
+dec90$mcd <- get_mcd(dec90_inc)
+dec90_pop$mcd <- get_mcd(dec90_pop)
+
+#education categories
+dec90_pov_cats <- paste0("E1C00", 1:9)
+#poverty categories
+dec90_edu_cats <- paste0("E3300", 1:7)
+
+#get income median
+dec90$median_inc <- dec90$E4U001
+
+#join census tables and add 'r4dec90' to beginning of names
+dec90 %<>% left_join(dec90_pop[,c("mcd","ET1001")])
+dec90 <- dec90[,c("mcd","median_inc","ET1001",dec90_pov_cats, dec90_edu_cats)]
+
+names(dec90) <- paste0("r4dec90_", names(dec90))
+ 
+#all MCDs from r4geo in census data?
+table(r4geo$r4dec90_mcd %in% dec90$r4dec90_mcd)
+
+#match R4 data to census variables
+r4geo %<>% left_join(dec90)
+```
+Attaching 2000 decennial census data to R6 geocoded data
+
+```{r}
+#read r6 data
+r6geo <- read.dta("pheno_data/R6_Geocodes.dta")
+#make mcd
+r6geo$r6dec00_mcd <- r6geo$z_ha928re
+
+#read 2000 decennial census data
+dec00 <- read.csv("census_data/2000/nhgis0017_ds151_2000_cty_sub.csv")
+dec00_pop <- read.csv("census_data/2000/nhgis0018_ds146_2000_cty_sub.csv")
+
+#make mcd
+get_mcd <- function(dat) paste0(sprintf("%02d",dat$STATEA),
+                       sprintf("%03d",dat$COUNTYA),
+                       sprintf("%05d",dat$CTY_SUBA))
+
+dec00$mcd <- get_mcd(dec00)
+dec00_pop$mcd <- get_mcd(dec00_pop)
+
+#Education categories were only available broken down by sex, so we must combine education categories by sex
+male <- paste0("GKT",sprintf("%03d", 1:16))
+female <- paste0("GKT", sprintf("%03d", 17:32))
+both <- paste0(male, "_dec00")
+for(i in 1:16)  dec00[[both[i]]] <- dec00[[male[i]]] + dec00[[female[i]]]
+
+#median income, number poverty
+dec00$median_inc <- dec00$GMY001
+dec00$below_pov <- dec00$GN6001
+dec00$atorabove_pov <- dec00$GN6002
+
+#join census data and add 'r6dec00' to beginning of names
+dec00 %<>% left_join(dec00_pop[,c("mcd","FL5001")])
+dec00 <- dec00[,c("mcd","FL5001","median_inc","below_pov","atorabove_pov", both)]
+#set the names for the sum female+male education categories to be what were the male names
+names(dec00) <- gsub("_dec00", "", names(dec00))
+names(dec00) <- paste0("r6dec00_", names(dec00))
+
+
+#all mcds in census?
+table(r6geo$r6dec00_mcd %in% dec00$r6dec00_mcd)
+
+#match r6 to 2000 census
+r6geo %<>% left_join(dec00)
+```
+Also attach 2009-2013 ACS data to R6 geocoded data
+
+```{r}
+#2009-2013 ACS data from NHIS
+acs13 <- read.csv("census_data/2009-2013/nhgis0022_ds201_20135_2013_cty_sub.csv")
+acs13$mcd <- paste0(sprintf("%02d",acs13$STATEA),
+                       sprintf("%03d",acs13$COUNTYA),
+                       sprintf("%05d",acs13$COUSUBA))
+
+
+#median income
+acs13$median_inc <- acs13$UHDE001
+
+#education categories
+acs13_edu_cats <- paste0("UGSE", sprintf("%03d", 1:25))
+#poverty categories
+acs13_pov_cats <- paste0("UG7E00", 1:7)
+
+
+#assemble census tables and add 'r6acs13_' to the begnning of names
+acs13 <- acs13[c("mcd","median_inc","UHDE001", acs13_edu_cats, acs13_pov_cats)]
+names(acs13) <- paste0("r6acs13_", names(acs13))
+
+#are all MCDs in r6geo also in census?
+table(r6geo$r6dec00_mcd %in% acs13$r6acs13_mcd)
+
+#match acs to R6
+r6geo %<>% left_join(acs13, by=c("r6dec00_mcd" = "r6acs13_mcd"))
+```
+
+```{r}
+#check that distributions make sense, as a proportion of total pop (except median income)
+hist.data.frame <- function(dat, cols, total_col, breaks=100)  {
+  for(i in cols) hist(dat[[i]] / dat[[total_col]], main=names(dat)[i], breaks=breaks)
+}
+
+barplot(table(r3geo$r3dec70_median_inc))
+hist.data.frame(r3geo, 5:ncol(r3geo), "r3dec70_CBC001")
+
+hist(r4geo$r4dec90_median_inc)
+hist.data.frame(r4geo, 8:ncol(r4geo), "r4dec90_ET1001")
+
+hist(r6geo$r6acs13_median_inc - r6geo$r6dec00_median_inc)
+hist.data.frame(r6geo, 14:31, "r6dec00_FL5001")
+hist.data.frame(r6geo, 35:58, 34)
+hist.data.frame(r6geo, 60:65, 59)
+```
+
+
+```{r}
+#export to stata to send back to Carol at WLS
+write.dta(r3geo, "pheno_data/R3_Geocodes_MATCHED.dta")
+write.dta(r4geo, "pheno_data/R4_Geocodes_MATCHED.dta")
+write.dta(r6geo, "pheno_data/R6_Geocodes_MATCHED.dta")
+```
+
+
+
+Citation for IPUMS: 
+
+Steven Ruggles, Katie Genadek, Ronald Goeken, Josiah Grover, and Matthew Sobek. Integrated Public Use Microdata Series: Version 7.0 [dataset]. Minneapolis: University of Minnesota, 2017. https://doi.org/10.18128/D010.V7.0.
+
+```{r}
+#creating the variable key
+census_key <- read.csv("census_data/census_key.csv")
+
+```
+
+Census 1940 Data
+
+```{r}
+r40geo <- readstata13::read.dta13("census_data/1940/R_40_Geocodes.dta")
+r40edu <- readstata13::read.dta13("census_data/1940/Census_1940_Education_MibiSample.dta")
+```
+
