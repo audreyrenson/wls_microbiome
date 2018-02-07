@@ -149,11 +149,38 @@ for(i in 1:nrow(sdat)) if(sdat$rtype[i] %in% c("p","e")) {
     sdat$age2011[i] <- sdat$z_hc012sp[spouse_index]
   }
 }
+```
+
+Adding census 1940 data
+```{r census1940}
+r40edu <- readstata13::read.dta13("census_data/1940/Census_1940_Education_MibiSample.dta")
+
+sdat %<>% left_join(r40edu, by=c("idpriv","rtype"))
+vars_keep <- c(vars_keep, c("educd_mom","educd_pop"))
+```
+
+Defining geographical variables
+```{r}
+sdat %<>% left_join(geo, by=c("idpriv","rtype"))
+
+n_hsged <- rowSums(select(sdat, r6acs13_UGSE017:r6acs13_UGSE025))
+n_bach  <- rowSums(select(sdat, r6acs13_UGSE022:r6acs13_UGSE025))
+
+sdat$percent_bachelors13 <- n_bach / sdat$r6acs13_UGSE001
+sdat$percent_hsged13 <- n_hsged / sdat$r6acs13_UGSE001
+sdat$total_pop <- sdat$r6acs13_UGSE001
+
+vars_keep <- c(vars_keep, "percent_bachelors13","percent_hsged13","total_pop","r6acs13_median_inc")
+```
+
+
+
+```{r fig.width=6, fig.height=13}
 
 
 #generating the data set to keep
 sdat <- sdat[,vars_keep]
-sdat %<>% left_join(geo, by=c("idpriv","rtype"))
+
 rownames(sdat) <- paste0(sdat$idpriv, sdat$rtype)
 sdat <- sdat[sample_names(wisc),]
 
@@ -197,15 +224,44 @@ Table One
 sdat$type = sapply(sdat$rtype, switch, e="Sib Spouse", g="Grad",p="Grad Spouse", s="Sib")
 sdat %<>% droplevels
 
-htmlTable(table_one(vars=c("sex","age2011","z_hb005re","z_hp260hec","z_jx011rec"),
+htmlTable(table_one(vars=c("sex","age2011","z_hb005rec","z_hp260hec","z_jx011rec",
+                           "edmo57q","edfa57q","sesp57",
+                           "educd_pop","educd_mom"),
                     varlabels = c("Gender","Age in 2011","Highest level of education",
-                                  "Total Household Income","BMI"),
+                                  "Total Household Income","BMI",
+                                  "Mother's years of schooling (R1 1957)",
+                                  "Father's years of schooling (R1 1957)",
+                                  "How does your family income or wealth compare with families in your community?",
+                                  "Father's education (census 1940)",
+                                  "Mothers's education (census 1940)"), 
+                    includeNA=c("cat","cont"),
                     data = sdat, strata="type"))
 
-table_one("z_hb005rec", data=sdat)
+
+
+htmlTable(table_one(vars=c("sex","age2011","z_hb005rec","z_hp260hec","z_jx011rec",
+                           "edmo57q","edfa57q","sesp57",
+                           "educd_pop","educd_mom","total_pop", 
+                           "r6acs13_median_inc","percent_bachelors13",
+                           "percent_hsged13"),
+                    varlabels = c("Gender","Age in 2011","Highest level of education",
+                                  "Total Household Income","BMI",
+                                  "Mother's years of schooling (R1 1957)",
+                                  "Father's years of schooling (R1 1957)",
+                                  "How does your family income or wealth compare with families in your community?",
+                                  "Father's education (census 1940)",
+                                  "Mothers's education (census 1940)",
+                                  "Population (CTYSUB 2009-2013)",
+                                  "Median income (CTYSUB 2009-2013)",
+                                  "Proportion bachelors + (CTYSUB 2009-2013)",
+                                  "Proportion hs/GED + (CTYSUB 2009-2013)"), 
+                    includeNA=c("cat","cont"),
+                    normal=names(sdat),
+                    data = sdat, strata="type"))
 
 lapply(c("sex","age2011","z_hb005rec","z_hp260hec"), function(i) table(is.na(sdat[[i]]), sdat$type))
 
+vars[!vars %in% names(sdat)]
 ```
 
 Basic Filtering (more than 3 sample with any count)
