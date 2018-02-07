@@ -14,7 +14,7 @@ library(ggplot2)
 library(readstata13)
 library(tableone)
 library(reshape2)
-#if(!require(clinRes)) devtools::install_github("audreyrenson/clinRes"); library(clinres)
+if(!require(clinRes)) devtools::install_github("audreyrenson/clinRes"); library(clinRes)
 library(htmlTable)
 source("../nychanes2/src/summaryPlots.R")
 ```
@@ -195,12 +195,13 @@ samp$log_inc <- log(samp$z_hp260hec)
 Table One
 ```{r}
 sdat$type = sapply(sdat$rtype, switch, e="Sib Spouse", g="Grad",p="Grad Spouse", s="Sib")
-sdat$z_hb005re %<>% droplevels
+sdat %<>% droplevels
 
-htmlTable(table_one(vars=c("sex","age2011","z_hb005re","z_hp260hec","z_jx011rec"), 
+htmlTable(table_one(vars=c("sex","age2011","z_hb005re","z_hp260hec","z_jx011rec"),
                     varlabels = c("Gender","Age in 2011","Highest level of education",
                                   "Total Household Income","BMI"),
                     data = sdat, strata="type"))
+
 table_one("z_hb005rec", data=sdat)
 
 lapply(c("sex","age2011","z_hb005rec","z_hp260hec"), function(i) table(is.na(sdat[[i]]), sdat$type))
